@@ -18,7 +18,7 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-frontend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend")
+frontend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
 frontend_path = os.path.abspath(frontend_path)
 
 if os.path.exists(frontend_path):
