@@ -39,7 +39,7 @@ generation_config = GenerationConfig(
 
 def prep_image(image_path: str, max_width: int = 1600, max_height: int = 2300):
     """
-    Prepare and upload image to Gemini API
+    Prepare image for Gemini API (returns PIL Image object)
     
     Args:
         image_path: Path to the image file
@@ -47,36 +47,29 @@ def prep_image(image_path: str, max_width: int = 1600, max_height: int = 2300):
         max_height: Maximum height for resizing
     
     Returns:
-        Uploaded file object from Gemini API
+        PIL Image object ready for Gemini API
     """
     logger.info(f"Starting image preparation: {image_path}")
     try:
         # Open and validate image
         logger.debug(f"Opening image file: {image_path}")
-        with Image.open(image_path) as img:
-            original_size = img.size
-            logger.info(f"Original image size: {original_size}")
-            
-            img.thumbnail((max_width, max_height))
-            new_size = img.size
-            logger.info(f"Resized image to: {new_size}")
-            
-            # Create temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
-                temp_path = temp_file.name
-                logger.debug(f"Saving to temporary file: {temp_path}")
-                img.save(temp_path, format='PNG')
-            
-            # Upload to Gemini
-            logger.info("Uploading image to Gemini API...")
-            sample_file = genai.upload_file(path=temp_path, display_name="Vision")
-            logger.info(f"Image uploaded successfully. File name: {sample_file.name}")
-            
-            # Clean up temp file
-            os.remove(temp_path)
-            logger.debug(f"Temporary file removed: {temp_path}")
-            
-            return sample_file
+        img = Image.open(image_path)
+        original_size = img.size
+        logger.info(f"Original image size: {original_size}")
+        
+        # Convert to RGB if needed (for compatibility)
+        if img.mode != 'RGB':
+            logger.info(f"Converting image from {img.mode} to RGB")
+            img = img.convert('RGB')
+        
+        # Resize if necessary
+        img.thumbnail((max_width, max_height))
+        new_size = img.size
+        logger.info(f"Resized image to: {new_size}")
+        
+        logger.info("Image prepared successfully (direct PIL Image)")
+        return img
+        
     except FileNotFoundError as e:
         logger.error(f"Image file not found: {image_path}")
         raise Exception(f"Görsel dosyası bulunamadı: {str(e)}")
@@ -106,8 +99,8 @@ def analyze_shelf(image_path: str) -> Optional[str]:
         model = genai.GenerativeModel(model_name=model_name)
         logger.info("Model initialized successfully")
         
-        # Prepare image
-        sample_file = prep_image(image_path)
+        # Prepare image (returns PIL Image)
+        img = prep_image(image_path)
         
         prompt = """
         Bu bir market rafı fotoğrafıdır. Görme engelli bir kullanıcı için detaylı analiz yap:
@@ -121,8 +114,8 @@ def analyze_shelf(image_path: str) -> Optional[str]:
         Cevabını açık, net ve sesli okumaya uygun şekilde ver. Her bilgiyi ayrı satırlarda sun.
         """
         
-        logger.info("Sending request to Gemini API...")
-        response = model.generate_content([sample_file, prompt], generation_config=generation_config)
+        logger.info("Sending request to Gemini API with PIL Image...")
+        response = model.generate_content([img, prompt], generation_config=generation_config)
         logger.info("Received response from Gemini API")
         
         if response.parts:
