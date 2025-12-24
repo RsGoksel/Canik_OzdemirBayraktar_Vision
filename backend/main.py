@@ -18,16 +18,19 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+frontend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
+frontend_path = os.path.abspath(frontend_path)
+
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
 @app.get("/")
 async def root():
     """Serve the main frontend page"""
-    frontend_index = os.path.join(frontend_path, "index.html")
-    if os.path.exists(frontend_index):
-        return FileResponse(frontend_index)
+    if os.path.exists(frontend_path):
+        frontend_index = os.path.join(frontend_path, "index.html")
+        if os.path.exists(frontend_index):
+            return FileResponse(frontend_index)
     return {"message": "Vision Assistant API", "status": "running"}
 
 @app.get("/health")
