@@ -18,19 +18,51 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-frontend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
-frontend_path = os.path.abspath(frontend_path)
+# Try multiple path strategies for Railway deployment
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-if os.path.exists(frontend_path):
+# Strategy 1: Relative to backend directory
+frontend_path_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
+frontend_path_1 = os.path.abspath(frontend_path_1)
+
+# Strategy 2: From current working directory
+frontend_path_2 = os.path.join(os.getcwd(), "frontend")
+
+# Strategy 3: Absolute path assuming /app structure
+frontend_path_3 = "/app/frontend"
+
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"Backend file location: {os.path.abspath(__file__)}")
+logger.info(f"Frontend path strategy 1: {frontend_path_1} - exists: {os.path.exists(frontend_path_1)}")
+logger.info(f"Frontend path strategy 2: {frontend_path_2} - exists: {os.path.exists(frontend_path_2)}")
+logger.info(f"Frontend path strategy 3: {frontend_path_3} - exists: {os.path.exists(frontend_path_3)}")
+
+# Use the first path that exists
+frontend_path = None
+for path in [frontend_path_1, frontend_path_2, frontend_path_3]:
+    if os.path.exists(path):
+        frontend_path = path
+        logger.info(f"Using frontend path: {frontend_path}")
+        break
+
+if frontend_path and os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+    logger.info("Frontend static files mounted at /static")
+else:
+    logger.error("Frontend directory not found! Static files will not be served.")
 
 @app.get("/")
 async def root():
     """Serve the main frontend page"""
-    if os.path.exists(frontend_path):
+    if frontend_path and os.path.exists(frontend_path):
         frontend_index = os.path.join(frontend_path, "index.html")
+        logger.info(f"Looking for index.html at: {frontend_index}")
         if os.path.exists(frontend_index):
+            logger.info("Serving index.html")
             return FileResponse(frontend_index)
+    logger.warning("Frontend not found, serving API status JSON")
     return {"message": "Vision Assistant API", "status": "running"}
 
 @app.get("/health")
