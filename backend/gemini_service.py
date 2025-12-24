@@ -15,8 +15,7 @@ generation_config = GenerationConfig(
     max_output_tokens=2048,
     temperature=0.1,
     top_p=0.9,
-    top_k=30,
-    response_mime_type="text/plain"
+    top_k=30
 )
 
 def prep_image(image_path: str, max_width: int = 1600, max_height: int = 2300):
