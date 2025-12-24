@@ -2,7 +2,10 @@
 
 ## 📋 Proje Açıklaması
 
-Vision Assistant, görme engelli kullanıcılar için geliştirilmiş akıllı bir görsel asistan uygulamasıdır. Google Gemini AI kullanarak görüntü analizi yapar ve sesli geri bildirim sağlar.
+Vision Assistant, görme engelli kullanıcılar için geliştirilmiş akıllı bir görsel asistan uygulamasıdır. 
+Bu proje Samsun Canik Keşif Kampüsü dahilinde eğitim amaçlı geliştirilmiştir.
+
+
 
 ### 🎯 Ana Özellikler
 
@@ -25,7 +28,7 @@ Vision Assistant, görme engelli kullanıcılar için geliştirilmiş akıllı b
 
 - Python 3.8+
 - Modern web tarayıcısı (Chrome, Firefox, Safari, Edge)
-- Google Gemini API Key
+
 
 ### Backend Kurulumu
 
@@ -125,7 +128,7 @@ Sonuç ekranında otomatik olarak sesli okumayı aktif/deaktif et.
 
 ### Backend
 - **FastAPI**: Modern, hızlı Python web framework
-- **Google Gemini AI**: Görüntü analizi ve yapay zeka
+- **Google  AI**: Görüntü analizi ve yapay zeka
 - **Pillow**: Görüntü işleme
 - **Uvicorn**: ASGI sunucu
 
@@ -142,7 +145,7 @@ Sonuç ekranında otomatik olarak sesli okumayı aktif/deaktif et.
 irfan_hoca/
 ├── backend/
 │   ├── main.py              # FastAPI ana uygulama
-│   ├── gemini_service.py    # Gemini AI entegrasyonu
+│   ├── _service.py    #  AI entegrasyonu
 │   └── requirements.txt     # Python bağımlılıkları
 └── frontend/
     ├── index.html           # Ana HTML
@@ -226,15 +229,12 @@ Görüntüden metin çıkarır (OCR).
 
 ## 📄 Lisans
 
-Bu proje eğitim amaçlı geliştirilmiştir.
+Bu proje Samsun Canik Keşif Kampüsü dahilinde eğitim amaçlı geliştirilmiştir.
 
 ## 🤝 Katkıda Bulunma
 
-Öneriler ve geri bildirimler için lütfen iletişime geçin.
-
-## 📞 İletişim
-
-Proje hakkında sorularınız için: [İletişim bilgisi eklenecek]
+İrfan GÜMÜŞ 
+Kadir Göksel GÜNDÜZ
 
 ---
 
