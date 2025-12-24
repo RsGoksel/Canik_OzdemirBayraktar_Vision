@@ -226,15 +226,12 @@ Görüntüden metin çıkarır (OCR).
 
 ## 📄 Lisans
 
-Bu proje eğitim amaçlı geliştirilmiştir.
+Bu proje Samsun Canik Keşif Kampüsü dahilinde eğitim amaçlı geliştirilmiştir.
 
 ## 🤝 Katkıda Bulunma
 
-Öneriler ve geri bildirimler için lütfen iletişime geçin.
-
-## 📞 İletişim
-
-Proje hakkında sorularınız için: [İletişim bilgisi eklenecek]
+İrfan GÜMÜŞ 
+Kadir Göksel GÜNDÜZ
 
 ---
 
