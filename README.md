@@ -28,7 +28,7 @@ Bu proje Samsun Canik Keşif Kampüsü dahilinde eğitim amaçlı geliştirilmi�
 
 - Python 3.8+
 - Modern web tarayıcısı (Chrome, Firefox, Safari, Edge)
-- Google Gemini API Key
+
 
 ### Backend Kurulumu
 
@@ -128,7 +128,7 @@ Sonuç ekranında otomatik olarak sesli okumayı aktif/deaktif et.
 
 ### Backend
 - **FastAPI**: Modern, hızlı Python web framework
-- **Google Gemini AI**: Görüntü analizi ve yapay zeka
+- **Google  AI**: Görüntü analizi ve yapay zeka
 - **Pillow**: Görüntü işleme
 - **Uvicorn**: ASGI sunucu
 
@@ -145,7 +145,7 @@ Sonuç ekranında otomatik olarak sesli okumayı aktif/deaktif et.
 irfan_hoca/
 ├── backend/
 │   ├── main.py              # FastAPI ana uygulama
-│   ├── gemini_service.py    # Gemini AI entegrasyonu
+│   ├── _service.py    #  AI entegrasyonu
 │   └── requirements.txt     # Python bağımlılıkları
 └── frontend/
     ├── index.html           # Ana HTML
