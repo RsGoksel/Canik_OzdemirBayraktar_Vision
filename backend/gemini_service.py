@@ -148,7 +148,7 @@ def analyze_store_navigation(image_path: str) -> Optional[str]:
         logger.info(f"Initializing model: {model_name}")
         model = genai.GenerativeModel(model_name=model_name)
         
-        sample_file = prep_image(image_path)
+        img = prep_image(image_path)
         
         prompt = """
         Bu bir market içi fotoğrafıdır. Görme engelli bir kullanıcıya navigasyon yardımı sağla:
@@ -167,7 +167,7 @@ def analyze_store_navigation(image_path: str) -> Optional[str]:
         """
         
         logger.info("Sending navigation analysis request...")
-        response = model.generate_content([sample_file, prompt], generation_config=generation_config)
+        response = model.generate_content([img, prompt], generation_config=generation_config)
         
         if response.parts:
             logger.info("Navigation analysis successful")
@@ -198,12 +198,12 @@ def extract_text_ocr(image_path: str) -> Optional[str]:
         logger.info(f"Initializing model: {model_name}")
         model = genai.GenerativeModel(model_name=model_name)
         
-        sample_file = prep_image(image_path)
+        img = prep_image(image_path)
         
         prompt = "Bu görseldeki tüm metinleri oku ve çıkar. Metinleri olduğu gibi, düzenli şekilde sun."
         
         logger.info("Sending OCR request...")
-        response = model.generate_content([sample_file, prompt], generation_config=generation_config)
+        response = model.generate_content([img, prompt], generation_config=generation_config)
         
         if response.parts:
             logger.info("OCR extraction successful")
