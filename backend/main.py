@@ -97,36 +97,47 @@ async def analyze_shelf_endpoint(file: UploadFile = File(...)):
     Returns:
         JSON response with product information
     """
+    logger.info(f"Received analyze-shelf request. File: {file.filename}, Content-Type: {file.content_type}")
     try:
         # Validate file type
         if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
+            logger.warning(f"Invalid file type: {file.content_type}")
+            raise HTTPException(status_code=400, detail="Dosya bir görsel olmalıdır")
         
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
             content = await file.read()
+            logger.info(f"File size: {len(content)} bytes")
             temp_file.write(content)
             temp_path = temp_file.name
+        
+        logger.info(f"Temporary file created: {temp_path}")
         
         # Analyze the shelf
         result = analyze_shelf(temp_path)
         
         # Clean up temp file
         os.remove(temp_path)
+        logger.info("Temporary file cleaned up")
         
         if result:
+            logger.info("Shelf analysis completed successfully")
             return JSONResponse(content={
                 "success": True,
                 "analysis": result,
                 "type": "shelf"
             })
         else:
-            raise HTTPException(status_code=500, detail="Analysis failed")
+            logger.error("Analysis returned no results")
+            raise HTTPException(status_code=500, detail="Analiz sonucu alınamadı")
     
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+        logger.error(f"Shelf analysis endpoint error: {str(e)}", exc_info=True)
+        error_msg = str(e)
+        # Return user-friendly Turkish error message
+        raise HTTPException(status_code=500, detail=f"Analiz sırasında hata oluştu: {error_msg}")
 
 @app.post("/api/analyze-navigation")
 async def analyze_navigation_endpoint(file: UploadFile = File(...)):
@@ -139,14 +150,17 @@ async def analyze_navigation_endpoint(file: UploadFile = File(...)):
     Returns:
         JSON response with navigation instructions
     """
+    logger.info(f"Received analyze-navigation request. File: {file.filename}")
     try:
         # Validate file type
         if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
+            logger.warning(f"Invalid file type: {file.content_type}")
+            raise HTTPException(status_code=400, detail="Dosya bir görsel olmalıdır")
         
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
             content = await file.read()
+            logger.info(f"File size: {len(content)} bytes")
             temp_file.write(content)
             temp_path = temp_file.name
         
@@ -157,18 +171,21 @@ async def analyze_navigation_endpoint(file: UploadFile = File(...)):
         os.remove(temp_path)
         
         if result:
+            logger.info("Navigation analysis completed successfully")
             return JSONResponse(content={
                 "success": True,
                 "analysis": result,
                 "type": "navigation"
             })
         else:
-            raise HTTPException(status_code=500, detail="Analysis failed")
+            logger.error("Navigation analysis returned no results")
+            raise HTTPException(status_code=500, detail="Navigasyon analizi sonucu alınamadı")
     
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+        logger.error(f"Navigation analysis endpoint error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Navigasyon analizi sırasında hata oluştu: {str(e)}")
 
 @app.post("/api/extract-text")
 async def extract_text_endpoint(file: UploadFile = File(...)):
@@ -181,14 +198,17 @@ async def extract_text_endpoint(file: UploadFile = File(...)):
     Returns:
         JSON response with extracted text
     """
+    logger.info(f"Received extract-text request. File: {file.filename}")
     try:
         # Validate file type
         if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
+            logger.warning(f"Invalid file type: {file.content_type}")
+            raise HTTPException(status_code=400, detail="Dosya bir görsel olmalıdır")
         
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
             content = await file.read()
+            logger.info(f"File size: {len(content)} bytes")
             temp_file.write(content)
             temp_path = temp_file.name
         
@@ -199,18 +219,21 @@ async def extract_text_endpoint(file: UploadFile = File(...)):
         os.remove(temp_path)
         
         if result:
+            logger.info("OCR extraction completed successfully")
             return JSONResponse(content={
                 "success": True,
                 "text": result,
                 "type": "ocr"
             })
         else:
-            raise HTTPException(status_code=500, detail="OCR failed")
+            logger.error("OCR returned no results")
+            raise HTTPException(status_code=500, detail="Metin okuması sonucu alınamadı")
     
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+        logger.error(f"OCR extraction endpoint error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Metin okuma sırasında hata oluştu: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

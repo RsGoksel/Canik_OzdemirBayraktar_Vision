@@ -4,11 +4,30 @@ import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
 from typing import Optional
 import tempfile
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # API Key Configuration - Read from environment variable
 API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyDoOcXuFOnynSSFmNVM1zGGGFLTllVw_R4')
 
-genai.configure(api_key=API_KEY)
+# Validate API Key
+if not API_KEY:
+    logger.error("CRITICAL: GOOGLE_API_KEY not found in environment variables!")
+    raise ValueError("GOOGLE_API_KEY is required but not set")
+else:
+    # Log masked API key for debugging
+    masked_key = API_KEY[:10] + "..." + API_KEY[-4:] if len(API_KEY) > 14 else "***"
+    logger.info(f"Google API Key loaded: {masked_key}")
+
+try:
+    genai.configure(api_key=API_KEY)
+    logger.info("Gemini API configured successfully")
+except Exception as e:
+    logger.error(f"Failed to configure Gemini API: {str(e)}")
+    raise
 
 # Generation Configuration
 generation_config = GenerationConfig(
@@ -30,24 +49,40 @@ def prep_image(image_path: str, max_width: int = 1600, max_height: int = 2300):
     Returns:
         Uploaded file object from Gemini API
     """
+    logger.info(f"Starting image preparation: {image_path}")
     try:
+        # Open and validate image
+        logger.debug(f"Opening image file: {image_path}")
         with Image.open(image_path) as img:
+            original_size = img.size
+            logger.info(f"Original image size: {original_size}")
+            
             img.thumbnail((max_width, max_height))
+            new_size = img.size
+            logger.info(f"Resized image to: {new_size}")
             
             # Create temporary file
             with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
                 temp_path = temp_file.name
+                logger.debug(f"Saving to temporary file: {temp_path}")
                 img.save(temp_path, format='PNG')
             
             # Upload to Gemini
+            logger.info("Uploading image to Gemini API...")
             sample_file = genai.upload_file(path=temp_path, display_name="Vision")
+            logger.info(f"Image uploaded successfully. File name: {sample_file.name}")
             
             # Clean up temp file
             os.remove(temp_path)
+            logger.debug(f"Temporary file removed: {temp_path}")
             
             return sample_file
+    except FileNotFoundError as e:
+        logger.error(f"Image file not found: {image_path}")
+        raise Exception(f"Görsel dosyası bulunamadı: {str(e)}")
     except Exception as e:
-        raise Exception(f"Image preparation error: {str(e)}")
+        logger.error(f"Image preparation failed: {str(e)}", exc_info=True)
+        raise Exception(f"Görsel hazırlama hatası: {str(e)}")
 
 
 def analyze_shelf(image_path: str) -> Optional[str]:
@@ -60,9 +95,18 @@ def analyze_shelf(image_path: str) -> Optional[str]:
     Returns:
         Extracted information about products, prices, and contents
     """
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash-exp")
+    logger.info("=" * 50)
+    logger.info("STARTING SHELF ANALYSIS")
+    logger.info("=" * 50)
     
     try:
+        # Initialize model
+        model_name = "gemini-2.5-flash"
+        logger.info(f"Initializing Gemini model: {model_name}")
+        model = genai.GenerativeModel(model_name=model_name)
+        logger.info("Model initialized successfully")
+        
+        # Prepare image
         sample_file = prep_image(image_path)
         
         prompt = """
@@ -77,12 +121,21 @@ def analyze_shelf(image_path: str) -> Optional[str]:
         Cevabını açık, net ve sesli okumaya uygun şekilde ver. Her bilgiyi ayrı satırlarda sun.
         """
         
+        logger.info("Sending request to Gemini API...")
         response = model.generate_content([sample_file, prompt], generation_config=generation_config)
+        logger.info("Received response from Gemini API")
         
-        return ''.join([part.text for part in response.parts]) if response.parts else None
+        if response.parts:
+            result = ''.join([part.text for part in response.parts])
+            logger.info(f"Analysis successful. Response length: {len(result)} characters")
+            return result
+        else:
+            logger.warning("No response parts received from Gemini API")
+            return None
     
     except Exception as e:
-        raise Exception(f"Shelf analysis error: {str(e)}")
+        logger.error(f"Shelf analysis failed: {str(e)}", exc_info=True)
+        raise Exception(f"Raf analizi hatası: {str(e)}")
 
 
 def analyze_store_navigation(image_path: str) -> Optional[str]:
@@ -95,9 +148,13 @@ def analyze_store_navigation(image_path: str) -> Optional[str]:
     Returns:
         Navigation instructions for the visually impaired user
     """
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash-exp")
+    logger.info("Starting store navigation analysis")
     
     try:
+        model_name = "gemini-2.5-flash"
+        logger.info(f"Initializing model: {model_name}")
+        model = genai.GenerativeModel(model_name=model_name)
+        
         sample_file = prep_image(image_path)
         
         prompt = """
@@ -116,12 +173,19 @@ def analyze_store_navigation(image_path: str) -> Optional[str]:
         Her talimatı ayrı satırda sun.
         """
         
+        logger.info("Sending navigation analysis request...")
         response = model.generate_content([sample_file, prompt], generation_config=generation_config)
         
-        return ''.join([part.text for part in response.parts]) if response.parts else None
+        if response.parts:
+            logger.info("Navigation analysis successful")
+            return ''.join([part.text for part in response.parts])
+        else:
+            logger.warning("No response parts for navigation")
+            return None
     
     except Exception as e:
-        raise Exception(f"Navigation analysis error: {str(e)}")
+        logger.error(f"Navigation analysis failed: {str(e)}", exc_info=True)
+        raise Exception(f"Navigasyon analizi hatası: {str(e)}")
 
 
 def extract_text_ocr(image_path: str) -> Optional[str]:
@@ -134,16 +198,27 @@ def extract_text_ocr(image_path: str) -> Optional[str]:
     Returns:
         Extracted text content
     """
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash-exp")
+    logger.info("Starting OCR text extraction")
     
     try:
+        model_name = "gemini-2.5-flash"
+        logger.info(f"Initializing model: {model_name}")
+        model = genai.GenerativeModel(model_name=model_name)
+        
         sample_file = prep_image(image_path)
         
         prompt = "Bu görseldeki tüm metinleri oku ve çıkar. Metinleri olduğu gibi, düzenli şekilde sun."
         
+        logger.info("Sending OCR request...")
         response = model.generate_content([sample_file, prompt], generation_config=generation_config)
         
-        return ''.join([part.text for part in response.parts]) if response.parts else None
+        if response.parts:
+            logger.info("OCR extraction successful")
+            return ''.join([part.text for part in response.parts])
+        else:
+            logger.warning("No text extracted")
+            return None
     
     except Exception as e:
-        raise Exception(f"OCR error: {str(e)}")
+        logger.error(f"OCR extraction failed: {str(e)}", exc_info=True)
+        raise Exception(f"Metin okuma hatası: {str(e)}")
