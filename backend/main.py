@@ -18,40 +18,56 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-# Try multiple path strategies for Railway deployment
+# Smart path detection that works in both local and Railway environments
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Strategy 1: Relative to backend directory
-frontend_path_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
-frontend_path_1 = os.path.abspath(frontend_path_1)
+def find_frontend_directory():
+    """Find frontend directory by checking multiple possible locations"""
+    current_file = os.path.abspath(__file__)
+    current_dir = os.path.dirname(current_file)
+    
+    logger.info(f"Current file: {current_file}")
+    logger.info(f"Current directory: {current_dir}")
+    logger.info(f"Working directory: {os.getcwd()}")
+    
+    # List all possible frontend locations to check
+    possible_paths = [
+        # Relative to current file's directory
+        os.path.join(current_dir, "frontend"),
+        os.path.join(current_dir, "..", "frontend"),
+        os.path.join(current_dir, "..", "..", "frontend"),
+        # From working directory
+        os.path.join(os.getcwd(), "frontend"),
+        # Absolute Railway paths
+        "/app/frontend",
+        "/app/backend/frontend",
+    ]
+    
+    for path in possible_paths:
+        abs_path = os.path.abspath(path)
+        exists = os.path.exists(abs_path)
+        logger.info(f"Checking: {abs_path} - Exists: {exists}")
+        if exists:
+            # Verify it actually contains index.html
+            index_path = os.path.join(abs_path, "index.html")
+            if os.path.exists(index_path):
+                logger.info(f"✓ Found frontend with index.html at: {abs_path}")
+                return abs_path
+            else:
+                logger.warning(f"Found directory but missing index.html: {abs_path}")
+    
+    logger.error("Frontend directory not found in any expected location!")
+    return None
 
-# Strategy 2: From current working directory
-frontend_path_2 = os.path.join(os.getcwd(), "frontend")
+frontend_path = find_frontend_directory()
 
-# Strategy 3: Absolute path assuming /app structure
-frontend_path_3 = "/app/frontend"
-
-logger.info(f"Current working directory: {os.getcwd()}")
-logger.info(f"Backend file location: {os.path.abspath(__file__)}")
-logger.info(f"Frontend path strategy 1: {frontend_path_1} - exists: {os.path.exists(frontend_path_1)}")
-logger.info(f"Frontend path strategy 2: {frontend_path_2} - exists: {os.path.exists(frontend_path_2)}")
-logger.info(f"Frontend path strategy 3: {frontend_path_3} - exists: {os.path.exists(frontend_path_3)}")
-
-# Use the first path that exists
-frontend_path = None
-for path in [frontend_path_1, frontend_path_2, frontend_path_3]:
-    if os.path.exists(path):
-        frontend_path = path
-        logger.info(f"Using frontend path: {frontend_path}")
-        break
-
-if frontend_path and os.path.exists(frontend_path):
+if frontend_path:
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
-    logger.info("Frontend static files mounted at /static")
+    logger.info(f"✓ Frontend static files mounted at /static from: {frontend_path}")
 else:
-    logger.error("Frontend directory not found! Static files will not be served.")
+    logger.error("✗ Frontend directory not found! Static files will not be served.")
 
 @app.get("/")
 async def root():
