@@ -2,7 +2,10 @@
 
 ## 📋 Proje Açıklaması
 
-Vision Assistant, görme engelli kullanıcılar için geliştirilmiş akıllı bir görsel asistan uygulamasıdır. Google Gemini AI kullanarak görüntü analizi yapar ve sesli geri bildirim sağlar.
+Vision Assistant, görme engelli kullanıcılar için geliştirilmiş akıllı bir görsel asistan uygulamasıdır. 
+Bu proje Samsun Canik Keşif Kampüsü dahilinde eğitim amaçlı geliştirilmiştir.
+
+
 
 ### 🎯 Ana Özellikler
 
