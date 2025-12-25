@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # API Key Configuration - Read from environment variable
-API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyDoOcXuFOnynSSFmNVM1zGGGFLTllVw_R4')
+API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyDoOcXuFOn.. ..')
 
 # Validate API Key
 if not API_KEY:
